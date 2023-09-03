@@ -28,3 +28,4 @@ lazy val root = (project in file("."))
       case x => (assembly / assemblyMergeStrategy).value.apply(x)
     }
   )
+assemblyJarName in assembly := "notes-api-1.0.jar"

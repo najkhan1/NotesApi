@@ -20,7 +20,7 @@ pipeline {
         stage('Package') {
             steps {
                 echo "Packaging..."
-                sh "/opt/sbt/bin/sbt package"
+                sh "/opt/sbt/bin/sbt assembly"
             }
         }
 
