@@ -24,14 +24,11 @@ pipeline {
             }
         }
 
-        post {
-            always {
-                junit '**/target/test-reports/TEST-*.xml'
-            }
-        }
-
     }
     post {
+        always {
+            junit '**/target/test-reports/TEST-*.xml'
+        }
         success {
             archiveArtifacts 'target/scala-*/*.jar'
         }
