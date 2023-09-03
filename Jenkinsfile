@@ -31,7 +31,6 @@ pipeline {
         }
 
     }
-
     post {
         success {
             archiveArtifacts 'target/scala-*/*.jar'
