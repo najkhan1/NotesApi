@@ -24,6 +24,18 @@ pipeline {
             }
         }
 
+        post {
+            always {
+                junit '**/target/test-reports/TEST-*.xml'
+            }
+        }
+
+    }
+
+    post {
+        success {
+            archiveArtifacts 'target/scala-*/*.jar'
+        }
     }
 
 }
