@@ -2,11 +2,11 @@ package com.najkhan.notesapi
 
 import cats.effect.Async
 import com.comcast.ip4s._
+import com.najkhan.notesapi.services.GetNotesService
 import fs2.io.net.Network
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
 import org.http4s.server.middleware.Logger
-import services.GetNotesService
 
 object NotesapiServer {
 
@@ -25,11 +25,11 @@ object NotesapiServer {
       // With Middlewares in place
       val finalHttpApp = Logger.httpApp(true, true)(httpApp)
 
+      EmberServerBuilder.default[F]
+        .withHost(ipv4"0.0.0.0")
+        .withPort(port"8080")
+        .withHttpApp(finalHttpApp)
+        .build
 
-        EmberServerBuilder.default[F]
-          .withHost(ipv4"0.0.0.0")
-          .withPort(port"8080")
-          .withHttpApp(finalHttpApp)
-          .build
   }.useForever
 }

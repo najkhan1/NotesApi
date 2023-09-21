@@ -4,9 +4,9 @@ import cats.effect.Async
 import cats.effect.unsafe.implicits.global
 import cats.implicits._
 import com.najkhan.notesapi.request.{GetNoteByIdReq, GetNotesReq}
+import com.najkhan.notesapi.services.GetNotesService
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
-import services.GetNotesService
 
 object NotesapiRoutes {
   def getNotesRoutes[F[_] :Async](N :GetNotesService[F]) :HttpRoutes[F] = {

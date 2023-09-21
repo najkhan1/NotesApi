@@ -1,9 +1,9 @@
 package com.najkhan.notesapi.response
 
+import com.najkhan.notesapi.services.GetNotesService
 import io.circe.{Encoder, Json}
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
-import services.GetNotesService
 
 sealed trait Resp
 final case class RespGetNotes(requestId :String, notes : List[RespGetNote]) extends Resp

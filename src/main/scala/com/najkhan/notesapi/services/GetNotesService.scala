@@ -1,4 +1,4 @@
-package services
+package com.najkhan.notesapi.services
 
 import cats.Applicative
 import cats.effect.IO
@@ -12,8 +12,8 @@ import doobie.WeakAsync.doobieWeakAsyncForAsync
 import doobie.implicits._
 
 trait GetNotesService[F[_]] {
-  def getNotes(getNotesReq: GetNotesReq) :F[IO[RespGetNotes]]
-  def getNote(getNoteReq: GetNoteByIdReq) :F[IO[RespGetNote]]
+  def getNotes(getNotesReq: GetNotesReq) :F[_]
+  def getNote(getNoteReq: GetNoteByIdReq) :F[_]
 
 }
 
@@ -28,15 +28,14 @@ object GetNotesService {
       getNoteByIdFromDatabase(getNoteReq).pure[F]
   }
 
-
-  def getNotesFromDatabase( notesReq :GetNotesReq) = {
-      getNotesFromDb(GetNotesDto(notesReq.userId)).
-        to[List].
-        transact(transactor)
+  private def getNotesFromDatabase(notesReq :GetNotesReq): IO[RespGetNotes] = {
+      getNotesFromDb(GetNotesDto(notesReq.userId))
+        .to[List]
+        .transact(transactor)
         .map(notes => RespGetNotes(notesReq.requestId, notes))
   }
 
-  def getNoteByIdFromDatabase(noteReq: GetNoteByIdReq) = {
+  private def getNoteByIdFromDatabase(noteReq: GetNoteByIdReq): IO[RespGetNote] = {
     getNoteById(GetNoteByIdDto(noteReq.userId, noteReq.noteId))
       .to[List]
       .transact(transactor)
