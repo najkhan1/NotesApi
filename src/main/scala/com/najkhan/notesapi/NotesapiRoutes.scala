@@ -1,32 +1,28 @@
 package com.najkhan.notesapi
-
-import cats.effect.Sync
+//
+import cats.effect.Async
+import cats.effect.unsafe.implicits.global
 import cats.implicits._
+import com.najkhan.notesapi.request.{GetNoteByIdReq, GetNotesReq}
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
+import services.GetNotesService
 
 object NotesapiRoutes {
-
-  def jokeRoutes[F[_]: Sync](J: Jokes[F]): HttpRoutes[F] = {
-    val dsl = new Http4sDsl[F]{}
+  def getNotesRoutes[F[_] :Async](N :GetNotesService[F]) :HttpRoutes[F] = {
+    val dsl = new Http4sDsl[F] {}
     import dsl._
     HttpRoutes.of[F] {
-      case GET -> Root / "joke" =>
-        for {
-          joke <- J.get
-          resp <- Ok(joke)
+      case GET -> Root / "getnotes" / userid =>
+         for {
+           notesIO  <- N.getNotes(GetNotesReq(userid))
+           resp <- Ok(notesIO.unsafeRunSync())
         } yield resp
-    }
-  }
 
-  def helloWorldRoutes[F[_]: Sync](H: HelloWorld[F]): HttpRoutes[F] = {
-    val dsl = new Http4sDsl[F]{}
-    import dsl._
-    HttpRoutes.of[F] {
-      case GET -> Root / "hello" / name =>
+      case GET -> IntVar(userId) /: IntVar(noteId) /: _ =>
         for {
-          greeting <- H.hello(HelloWorld.Name(name))
-          resp <- Ok(greeting)
+          noteIo <- N.getNote(GetNoteByIdReq(userId.toString, noteId.toString))
+          resp <- Ok(noteIo.unsafeRunSync())
         } yield resp
     }
   }
