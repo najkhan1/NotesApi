@@ -27,11 +27,7 @@ object GetNotesService {
     final def getNote(getNoteReq: GetNoteByIdReq) :F[IO[RespGetNote]] =
       getNoteByIdFromDatabase(getNoteReq).pure[F]
   }
-//  def getNotes(getNotesReq: GetNotesReq): IO[RespGetNotes] = {
-//      getNotesTransactor(getNotesReq)
-//  }
 
-//  def getNote(getNoteReq: GetNote) = ???
 
   def getNotesFromDatabase( notesReq :GetNotesReq) = {
       getNotesFromDb(GetNotesDto(notesReq.userId)).
