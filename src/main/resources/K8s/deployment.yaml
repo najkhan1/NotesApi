@@ -16,7 +16,9 @@ spec:
     spec:
       containers:
         - name: notes-api
-          image: najkhan1/personal:0.0.1
+          image: najkhan1/personal:latest
+          ports:
+            - containerPort: 8080
           envFrom:
             - configMapRef:
                 name: sql-url
