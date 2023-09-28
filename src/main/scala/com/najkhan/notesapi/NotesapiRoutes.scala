@@ -15,13 +15,14 @@ object NotesapiRoutes {
     HttpRoutes.of[F] {
       case GET -> Root / "getnotes" / userid =>
          for {
-           notesIO  <- N.getNotes(GetNotesReq(userid))
-           resp <- Ok(notesIO.unsafeRunSync())
+           notesIo <- N.getNotes(GetNotesReq(userid))
+           resp <- Ok(notesIo.unsafeRunSync())
         } yield resp
 
       case GET -> IntVar(userId) /: IntVar(noteId) /: _ =>
         for {
           noteIo <- N.getNote(GetNoteByIdReq(userId.toString, noteId.toString))
+          //noteIo <- noteIoWildCard.asInstanceOf[IO[RespGetNoteById]]
           resp <- Ok(noteIo.unsafeRunSync())
         } yield resp
     }

@@ -75,6 +75,6 @@ class TestDb  {
 
 }
 
-object TestDb extends App {
-  new TestDb()
-}
+//object TestDb extends App {
+//  new TestDb()
+//}

@@ -11,7 +11,6 @@ enablePlugins(
   DockerPlugin
 )
 
-
 //Compile / mainClass := Some("com.najkhan.notesapi.Main")
 lazy val root = (project in file("."))
   .settings(
@@ -20,6 +19,7 @@ lazy val root = (project in file("."))
     version := "0.0.1-SNAPSHOT",
     scalaVersion := "2.13.11",
     dockerBaseImage := "adoptopenjdk:11-jre-hotspot",
+    dockerExposedPorts := Seq(8080),
     dockerRepository := Some("personal"),
     dockerUsername := Some("najkhan1"),
     dockerAlias := DockerAlias(Some("najkhan1"),None,"personal",None),
