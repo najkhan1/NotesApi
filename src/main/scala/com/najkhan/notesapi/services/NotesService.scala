@@ -1,12 +1,10 @@
 package com.najkhan.notesapi.services
 
-import cats.Applicative
 import cats.effect.IO
-import cats.implicits.catsSyntaxApplicativeId
-import com.najkhan.notesapi.Dto.{GetNoteByIdDto, GetNotesDto}
+import com.najkhan.notesapi.Dto.{GetNoteByIdDto, GetNotesDto, SaveRequestDto}
 import com.najkhan.notesapi.databaseUtil.DbUtil
-import com.najkhan.notesapi.repositories.NotesRepository.{getNoteById, getNotesFromDb}
-import com.najkhan.notesapi.request.{GetNoteByIdReq, GetNotesReq}
+import com.najkhan.notesapi.repositories.NotesRepository.{getNoteById, getNotesFromDb, saveNote}
+import com.najkhan.notesapi.request.{GetNoteByIdReq, GetNotesReq, SaveNotReq}
 import com.najkhan.notesapi.response.{RespGetNoteById, RespGetNotes}
 import doobie.WeakAsync.doobieWeakAsyncForAsync
 import doobie.implicits._
@@ -16,8 +14,9 @@ import doobie.util.transactor.Transactor.Aux
 trait GetNotesService[F[_]] {
 
 
-  def getNotes(getNotesReq: GetNotesReq) :F[IO[RespGetNotes]]
-  def getNote(getNoteReq: GetNoteByIdReq) :F[IO[RespGetNoteById]]
+  def getNotes(getNotesReq: GetNotesReq) :IO[RespGetNotes]
+  def getNote(getNoteReq: GetNoteByIdReq) :IO[RespGetNoteById]
+  def saveNote(saveNoteReq: SaveNotReq): IO[Int]
 
 //  private[services] def getNotesFromDatabase(notesReq: GetNotesReq): F[_]
 //
@@ -29,12 +28,14 @@ object GetNotesService {
 
   val transactor: Aux[IO, Unit] = DbUtil.transactor
 
-  def impl[F[_] : Applicative ]: GetNotesService[F] =
+  def impl[F[_]]: GetNotesService[F] =
     new GetNotesService[F] {
-    final def getNotes(getNotesReq: GetNotesReq) :F[IO[RespGetNotes]] =
-      getNotesFromDatabase(getNotesReq).pure[F]
-    final def getNote(getNoteReq: GetNoteByIdReq) :F[IO[RespGetNoteById]] =
-      getNoteByIdFromDatabase(getNoteReq).pure[F]
+    final def getNotes(getNotesReq: GetNotesReq) :IO[RespGetNotes] =
+      getNotesFromDatabase(getNotesReq)
+    final def getNote(getNoteReq: GetNoteByIdReq) :IO[RespGetNoteById]=
+      getNoteByIdFromDatabase(getNoteReq)
+    final def saveNote(saveNoteReq: SaveNotReq): IO[Int] =
+      saveNotesToDB(saveNoteReq)
   }
 
   private[services] def getNotesFromDatabase(notesReq :GetNotesReq): IO[RespGetNotes] = {
@@ -52,7 +53,11 @@ object GetNotesService {
         val aNote = note.head
         RespGetNoteById(aNote.title, aNote.body)
       }
+  }
 
+  private[services] def saveNotesToDB(saveNoteRequest: SaveNotReq) = {
+    saveNote(SaveRequestDto(saveNoteRequest.userId, saveNoteRequest.title, saveNoteRequest.note))
+      .transact(transactor)
   }
 
 //

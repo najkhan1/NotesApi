@@ -1,6 +1,5 @@
 import cats.effect.{IO, IOApp}
 import com.najkhan.notesapi.NotesapiServer
-import com.najkhan.notesapi.dbTest.TestDb
 
 //package com.najkhan.notesapi
 //
@@ -9,6 +8,6 @@ import com.najkhan.notesapi.dbTest.TestDb
 
 
 object Main extends IOApp.Simple {
-  new TestDb
+  //new TestDb
   val run = NotesapiServer.run[IO]
 }
