@@ -1,40 +1,39 @@
 package com.najkhan.notesapi
 
 import cats.effect.Async
-import cats.syntax.all._
 import com.comcast.ip4s._
+import com.najkhan.notesapi.databaseUtil.DbUtil
+import com.najkhan.notesapi.repositories.NotesRepository
+import com.najkhan.notesapi.services.NotesService
 import fs2.io.net.Network
-import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
 import org.http4s.server.middleware.Logger
 
 object NotesapiServer {
 
-  def run[F[_]: Async: Network]: F[Nothing] = {
-    for {
-      client <- EmberClientBuilder.default[F].build
-      helloWorldAlg = HelloWorld.impl[F]
-      jokeAlg = Jokes.impl[F](client)
+  def run[F[_] : Async : Network]: F[Nothing] = {
 
-      // Combine Service Routes into an HttpApp.
-      // Can also be done via a Router if you
-      // want to extract segments not checked
-      // in the underlying routes.
-      httpApp = (
-        NotesapiRoutes.helloWorldRoutes[F](helloWorldAlg) <+>
-        NotesapiRoutes.jokeRoutes[F](jokeAlg)
+      val dbConnection = new DbUtil[F]
+
+      val notesRepo = new NotesRepository[F](dbConnection.transactor)
+
+      val getNotesAlg = new NotesService[F](notesRepo)
+
+      val routes = new NotesApiRoutes[F](getNotesAlg)
+
+      val httpApp = (
+        routes.getNotesRoutes
       ).orNotFound
 
       // With Middlewares in place
-      finalHttpApp = Logger.httpApp(true, true)(httpApp)
+      val finalHttpApp = Logger.httpApp(true, true)(httpApp)
 
-      _ <- 
-        EmberServerBuilder.default[F]
-          .withHost(ipv4"0.0.0.0")
-          .withPort(port"8080")
-          .withHttpApp(finalHttpApp)
-          .build
-    } yield ()
+      EmberServerBuilder.default[F]
+        .withHost(ipv4"0.0.0.0")
+        .withPort(port"8080")
+        .withHttpApp(finalHttpApp)
+        .build
+
   }.useForever
 }
