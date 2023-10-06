@@ -2,7 +2,9 @@ package com.najkhan.notesapi
 
 import cats.effect.Async
 import com.comcast.ip4s._
-import com.najkhan.notesapi.services.GetNotesService
+import com.najkhan.notesapi.databaseUtil.DbUtil
+import com.najkhan.notesapi.repositories.NotesRepository
+import com.najkhan.notesapi.services.NotesService
 import fs2.io.net.Network
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
@@ -10,16 +12,18 @@ import org.http4s.server.middleware.Logger
 
 object NotesapiServer {
 
-  def run[F[_]: Async: Network]: F[Nothing] = {
+  def run[F[_] : Async : Network]: F[Nothing] = {
 
-      val getNotesAlg = GetNotesService.impl[F]
+      val dbConnection = new DbUtil[F]
 
-      // Combine Service Routes into an HttpApp.
-      // Can also be done via a Router if you
-      // want to extract segments not checked
-      // in the underlying routes.
+      val notesRepo = new NotesRepository[F](dbConnection.transactor)
+
+      val getNotesAlg = new NotesService[F](notesRepo)
+
+      val routes = new NotesApiRoutes[F](getNotesAlg)
+
       val httpApp = (
-        NotesapiRoutes.getNotesRoutes[F](getNotesAlg)
+        routes.getNotesRoutes
       ).orNotFound
 
       // With Middlewares in place
