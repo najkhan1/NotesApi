@@ -1,46 +1,45 @@
 package com.najkhan.notesapi
-//
-import cats.effect.IO
-import com.najkhan.notesapi.request.{GetNoteByIdReq, GetNotesReq, SaveNotReq}
-import com.najkhan.notesapi.services.GetNotesService
-import io.circe.generic.auto._
+
+import cats.effect.Sync
+import cats.implicits._
+import com.najkhan.notesapi.request.{GetNoteByIdReq, GetNotesReq}
+import com.najkhan.notesapi.response.{RespGetNoteById, RespGetNotes}
+import com.najkhan.notesapi.services.NotesService
 import org.http4s.HttpRoutes
 import org.http4s.circe.CirceEntityCodec.{circeEntityDecoder, circeEntityEncoder}
 import org.http4s.dsl.Http4sDsl
-//
-//type Http[F[_]] = Kleisli[F, Request, Response]
-//
-//type HttpRoutes[F[_]] = Http[OptionT[F, ?]]
-object NotesapiRoutes {
 
+trait NotesRoutes[F[_]] {
+  def getNotesRoutes :HttpRoutes[F]
+}
+class NotesApiRoutes[F[_] :Sync](N :NotesService[F]) extends NotesRoutes[F] {
 
-  def getNotesRoutes[F[_]](N :GetNotesService[F]) :HttpRoutes[IO] = {
-    val dsl = new Http4sDsl[IO] {}
+  final def getNotesRoutes :HttpRoutes[F] = {
+    val dsl = new Http4sDsl[F] {}
     import dsl._
-    HttpRoutes.of[IO] {
+    HttpRoutes.of[F] {
       case GET -> Root / "getnotes" / userid =>
-         for {
-           notesIo <- N.getNotes(GetNotesReq(userid))
-           resp <- Ok(notesIo)
+        val req = GetNotesReq(userid)
+        val default = RespGetNotes(req.requestId,List.empty[RespGetNoteById])
+        for {
+           notesOp <- N.getNotes(GetNotesReq(userid))
+           resp <- Ok(optionator(default, notesOp))
         } yield resp
 
       case GET -> IntVar(userId) /: IntVar(noteId) /: _ =>
+        val req: GetNoteByIdReq = GetNoteByIdReq(userId.toString, noteId.toString)
+        val default = RespGetNoteById("No Note exits for the ID","")
         for {
-          noteIo <- N.getNote(GetNoteByIdReq(userId.toString, noteId.toString))
-          //noteIo <- noteIoWildCard.asInstanceOf[IO[RespGetNoteById]]
-          resp <- Ok(noteIo)
+          noteIo <- N.getNote(req)
+          resp <- Ok(optionator(default, noteIo))
         } yield resp
-
-      case req@ POST -> Root / "savenotes" =>
-        for {
-          note <- req.as[SaveNotReq]
-          saveNote  :Int<- N.saveNote(note)
-          resp <- Ok(saveNote)
-        } yield resp
-
+      
       case _ =>
         NotFound("This path is not available")
     }
   }
 
+  def optionator[A](default :A, x :Option[A]) :A = {
+    x.getOrElse(default)
+  }
 }
