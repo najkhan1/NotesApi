@@ -19,4 +19,3 @@ class DbUtil[F[_] : Async] extends CreateConnection[F] {
     logHandler = None
   )
 }
-

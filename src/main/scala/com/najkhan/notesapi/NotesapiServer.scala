@@ -1,6 +1,7 @@
 package com.najkhan.notesapi
 
 import cats.effect.Async
+import cats.implicits.toSemigroupKOps
 import com.comcast.ip4s._
 import com.najkhan.notesapi.databaseUtil.DbUtil
 import com.najkhan.notesapi.repositories.NotesRepository
@@ -15,15 +16,13 @@ object NotesapiServer {
   def run[F[_] : Async : Network]: F[Nothing] = {
 
       val dbConnection = new DbUtil[F]
-
       val notesRepo = new NotesRepository[F](dbConnection.transactor)
-
       val getNotesAlg = new NotesService[F](notesRepo)
-
-      val routes = new NotesApiRoutes[F](getNotesAlg)
+      val getRoutes = new NotesApiRoutes[F](getNotesAlg)
+      val postRouts = new NotesPostRoutesApi[F](getNotesAlg)
 
       val httpApp = (
-        routes.getNotesRoutes
+        postRouts.getPostNotesRoutes <+> getRoutes.getNotesRoutes
       ).orNotFound
 
       // With Middlewares in place
