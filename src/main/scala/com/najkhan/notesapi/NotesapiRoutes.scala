@@ -65,8 +65,8 @@ class NotesApiRoutes[F[_] :Sync](N :NotesService[F]) extends NotesRoutes[F] {
           resp <- Ok(optionator(default, noteIo))
         } yield resp
 
-//      case _ =>
-//        NotFound("This path is not available")
+      case _ =>
+        NotFound("This path is not available")
     }
   }
 

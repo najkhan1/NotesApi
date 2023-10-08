@@ -16,16 +16,13 @@ object NotesapiServer {
   def run[F[_] : Async : Network]: F[Nothing] = {
 
       val dbConnection = new DbUtil[F]
-
       val notesRepo = new NotesRepository[F](dbConnection.transactor)
-
       val getNotesAlg = new NotesService[F](notesRepo)
-
       val getRoutes = new NotesApiRoutes[F](getNotesAlg)
       val postRouts = new NotesPostRoutesApi[F](getNotesAlg)
 
       val httpApp = (
-        getRoutes.getNotesRoutes <+> postRouts.getPostNotesRoutes
+        postRouts.getPostNotesRoutes <+> getRoutes.getNotesRoutes
       ).orNotFound
 
       // With Middlewares in place
