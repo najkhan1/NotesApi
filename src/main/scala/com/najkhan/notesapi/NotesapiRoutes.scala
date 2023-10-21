@@ -3,12 +3,14 @@ package com.najkhan.notesapi
 import cats.effect.Sync
 import cats.effect.kernel.Concurrent
 import cats.implicits._
+import com.najkhan.notesapi.errorHandling.{HttpErrorHandler, UserError}
 import com.najkhan.notesapi.request.{GetNoteByIdReq, GetNotesReq, SaveNoteReq}
 import com.najkhan.notesapi.response.{RespGetNoteById, RespGetNotes}
 import com.najkhan.notesapi.services.NotesService
+import org.http4s.{EntityDecoder, HttpRoutes}
+import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.circe.jsonOf
 import org.http4s.dsl.Http4sDsl
-import org.http4s.{EntityDecoder, HttpRoutes}
 
 
 trait NotesRoutes[F[_]] {
@@ -19,7 +21,7 @@ trait PostRoutes[F[_]] {
   def getPostNotesRoutes: HttpRoutes[F]
 }
 
-class NotesPostRoutesApi[F[_] :Concurrent](N: NotesService[F]) extends PostRoutes[F] {
+class NotesPostRoutesApi[F[_] :Concurrent](N: NotesService[F])(implicit H: HttpErrorHandler[F, UserError])  extends PostRoutes[F] {
 
   import io.circe.generic.auto._
   import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
@@ -27,7 +29,7 @@ class NotesPostRoutesApi[F[_] :Concurrent](N: NotesService[F]) extends PostRoute
 
       val dsl = new Http4sDsl[F] {}
       import dsl._
-      HttpRoutes.of[F] {
+      H.handle(HttpRoutes.of[F] {
         case rec @ POST -> Root / "savenote" =>
 
           implicit val userDecoder: EntityDecoder[F, SaveNoteReq] = jsonOf[F, SaveNoteReq]
@@ -37,7 +39,7 @@ class NotesPostRoutesApi[F[_] :Concurrent](N: NotesService[F]) extends PostRoute
             resp <- Ok(rep)
           } yield resp
 
-      }
+      })
 
   }
 }

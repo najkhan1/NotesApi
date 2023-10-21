@@ -4,6 +4,7 @@ import cats.effect.Async
 import cats.implicits.toSemigroupKOps
 import com.comcast.ip4s._
 import com.najkhan.notesapi.databaseUtil.DbUtil
+import com.najkhan.notesapi.errorHandling.UserHttpErrorHandler
 import com.najkhan.notesapi.repositories.NotesRepository
 import com.najkhan.notesapi.services.NotesService
 import fs2.io.net.Network
@@ -19,6 +20,7 @@ object NotesapiServer {
       val notesRepo = new NotesRepository[F](dbConnection.transactor)
       val getNotesAlg = new NotesService[F](notesRepo)
       val getRoutes = new NotesApiRoutes[F](getNotesAlg)
+      implicit val errorHandler = new UserHttpErrorHandler[F]()
       val postRouts = new NotesPostRoutesApi[F](getNotesAlg)
 
       val httpApp = (
