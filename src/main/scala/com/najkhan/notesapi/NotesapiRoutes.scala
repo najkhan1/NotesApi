@@ -71,8 +71,7 @@ class NotesApiRoutes[F[_] :Sync](N :NotesService[F]) extends NotesRoutes[F] {
         NotFound("This path is not available")
     }
   }
-
-  def optionator[A](default :A, x :Option[A]) :A = {
+  private def optionator[A](default :A, x :Option[A]) :A = {
     x.getOrElse(default)
   }
 }

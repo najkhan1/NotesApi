@@ -38,7 +38,10 @@ lazy val root = (project in file("."))
       "org.tpolecat"    %% "doobie-specs2"       % doobieVersion,
       "org.tpolecat"    %% "doobie-hikari"       % doobieVersion,
       "com.typesafe"    %  "config"              % "1.4.2",
-      "com.github.pureconfig" %% "pureconfig"    % "0.17.4"
+      "com.github.pureconfig" %% "pureconfig"    % "0.17.4",
+      "org.scalactic"      %% "scalactic"          % "3.2.17",
+      "org.scalatest"  %% "scalatest" % "3.2.17" % "test",
+      "eu.timepit" %% "refined" % "0.10.3"
     ),
     addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.13.2" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1"),
