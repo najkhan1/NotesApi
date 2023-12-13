@@ -24,7 +24,7 @@ object NotesapiServer {
       val postRouts = new NotesPostRoutesApi[F](getNotesAlg)
 
       val httpApp = (
-        postRouts.getPostNotesRoutes <+> getRoutes.getNotesRoutes
+        postRouts.savePostNotesRoutes <+> getRoutes.getNotesRoutes
       ).orNotFound
 
       // With Middlewares in place

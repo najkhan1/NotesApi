@@ -5,7 +5,7 @@ import cats.effect.kernel.Concurrent
 import cats.implicits._
 import com.najkhan.notesapi.errorHandling.{HttpErrorHandler, UserError}
 import com.najkhan.notesapi.request.{GetNoteByIdReq, GetNotesReq, SaveNoteReq}
-import com.najkhan.notesapi.response.{RespGetNoteById, RespGetNotes}
+import com.najkhan.notesapi.response.{RespGetNoteById, RespGetNotes, SaveResponse}
 import com.najkhan.notesapi.services.NotesService
 import org.http4s.{EntityDecoder, HttpRoutes}
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
@@ -18,14 +18,14 @@ trait NotesRoutes[F[_]] {
 }
 
 trait PostRoutes[F[_]] {
-  def getPostNotesRoutes: HttpRoutes[F]
+  def savePostNotesRoutes: HttpRoutes[F]
 }
 
 class NotesPostRoutesApi[F[_] :Concurrent](N: NotesService[F])(implicit H: HttpErrorHandler[F, UserError])  extends PostRoutes[F] {
 
   import io.circe.generic.auto._
   import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
-  override def getPostNotesRoutes: HttpRoutes[F] = {
+  override def savePostNotesRoutes: HttpRoutes[F] = {
 
       val dsl = new Http4sDsl[F] {}
       import dsl._
@@ -36,7 +36,7 @@ class NotesPostRoutesApi[F[_] :Concurrent](N: NotesService[F])(implicit H: HttpE
           for {
             postReq <- rec.as[SaveNoteReq]
             rep <- N.saveNote(postReq)
-            resp <- Ok(rep)
+            resp <- Ok(SaveResponse.saveResult(rep))
           } yield resp
 
       })
